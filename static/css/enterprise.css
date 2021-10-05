@@ -1,0 +1,8 @@
+@font-face {
+    font-family: yahei; 
+    src: url(/static/fonts/microsoft_yahei.ttf)
+}
+.table-content{
+    font-family: yahei;
+    font-size: 16px;
+}
