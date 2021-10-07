@@ -86,7 +86,7 @@
     </table>
 </body>
 <script type="text/javascript">
-    var headers = ''
+    var headers = '' 
     var data = ''
     var cookies = ''
     var user_agent = {
@@ -203,48 +203,6 @@
             text_python += "res = s.post('" + url + "', data = data)\n"
         }
         text_python += 'print(res.text)\n\n'
-//         text_python += "# '''xpath解析'''\n"
-//         text_python += '# from lxml import etree\n'
-//         text_python += '# html = etree.HTML(res.text)\n'
-//         text_python += "# '''一个节点'''\n"
-//         text_python += "# node = html.xpath('string(//xxx[@class=\"xxx\"])')\n\n"
-//         text_python += "# '''多个节点'''\n"
-//         text_python += "# nodes = html.xpath('//xxx[@class=\"xxx\"]')\n"
-//         text_python += "# for node in nodes:\n"
-//         text_python += "#     result = {}\n"
-//         text_python += "#     result['xxx'] = node.xpath('string(.//xxx[@class=\"xxx\"])')\n"
-//         text_python += "#     print(result)\n\n"
-//         text_python += "#     # TO DO: 此处result可以用于写存入数据库的代码\n\n"
-
-//         text_python += "# '''正则表达式解析'''\n"
-//         text_python += "# import re\n"
-//         text_python += "# results = re.findall('xxx',res.text)\n\n"
-//         text_python += "# '''存入MongoDB数据库'''\n"
-//         text_python += "# from pymongo import MongoClient\n"
-//         text_python += "# mongo_client = MongoClient('mongodb://localhost:27017')\n"
-//         text_python += "# col = mongo_client['data']['xxx']\n"
-//         text_python += "# col.insert_one({})\n"
-//         text_python += "# mongo_client.close()\n\n"
-//         text_python += "# '''存入MySQL数据库'''\n"
-//         text_python += `# from pymysql import connect, cursors
-// # mysql_config = {
-// #     'host': 'localhost',
-// #     'user': 'user',
-// #     'password': 'passwd',
-// #     'db': 'db',
-// #     'charse': 'utf8mb4',
-// #     'cursorclass': cursors.DictCursor
-// # }
-// # table_name = ''
-// # conn = connect(**mysql_config)
-// # cursor = conn.cursor()
-// # '''result_list 为结果的数组, 如果是二维列表, 使用cursor.execute_many方法'''
-// # result_list = ['value1','value2','value3']
-// # cursor.execute(f'INSERT INTO INTO {table_name} (key1, key2, key3) VALUES (%s,%s,%s)',tuple(result_list))
-// # conn.commit()
-// # cursor.close()
-// # conn.close()
-//         `
         document.getElementById('text_python').value = text_python
     }
 

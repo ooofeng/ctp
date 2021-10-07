@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curl To Python</title>
+    <link rel="stylesheet" href="./static/css/zui-theme.min.css" type="text/css" />
+    <link rel="stylesheet" href="./static/css/zui.lite.min.css" type="text/css" />
+    <link rel="stylesheet" href="./static/css/zui.min.css" type="text/css" />
+    <link rel="stylesheet" href="./static/css/ctp.css" type="text/css" />
+    <link rel="icon" href="./static/images/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="./static/images/favicon.ico" type="image/x-icon" />
+</head>
+
+<body>
+    <div id="app" class="div_all">
+        <div class="row_title" style="display: flex; height: auto; min-height: 40px; width: 100%; margin-top: 10px;">
+
+            <div style="width: 30%;height: 100%; margin-left: 5px;">
+                <!-- Curl
+                <a href="">说明文档</a> -->
+                <label style="font-size: large;">Curl&nbsp;&nbsp;</label>
+                <button class="clear_curl btn btn-primary"> 微信公众号 </button>
+                <button class="clear_curl btn btn-primary"> 说明文档 </button>
+                <button class="clear_curl btn btn-primary"> Github </button>
+                <button class="clear_curl btn btn-primary" @click="initical(true);"> 清 空 </button>
+                <button class="clear_curl btn btn-primary"> 粘 贴 </button>
+                
+            </div>
+
+            <div style="width: 70%;height: 100%; margin-left: 5px;">
+                <label style="font-size: large;">Python&nbsp;&nbsp;</label>
+                <button class="clear_curl btn btn-primary copy" @click="copy_content(text_python, '代码');"> 复制 代码 </button>
+                <button class="clear_curl btn btn-primary copy" @click="copy_content(headers, 'Headers');"> 复制 Headers </button>
+                <button class="clear_curl btn btn-primary copy" @click="copy_content(cookies, 'Cookies');"> 复制 Cookies </button>
+                <button class="clear_curl btn btn-primary copy" @click="copy_content(data, 'Data');"> 复制 Data </button>
+                <!-- <button class="clear_curl btn btn-primary"> 复制 User-Agent </button> -->
+
+                <div class="dropdown dropdown-hover" style="display: inline;">
+                    <button class="btn btn-primary copy" type="button" data-toggle="dropdown" >复制 User-Agent&nbsp;&nbsp;<span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                        <li v-for="(ua,index) in user_agents">
+                            <a href="javascript:void(0)" @click="copy_content(ua.ua, ua.name_show);" class="copy">@{{ ua.name_show }}</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="dropdown dropdown-hover" style="display: inline;">
+                    <button class="btn btn-primary copy" type="button" data-toggle="dropdown" style="background-color: #FF0000; border-color: #FF0000;">复制 强代码&nbsp;&nbsp;<span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                        <li v-for="(code_model,index) in code_models">
+                            <a href="javascript:void(0)" class="copy" @click="copy_super_code(code_model.mode,code_model.name_show);" >@{{ code_model.name_show }}</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="row_content" style="height: 98%;width: 100%;">
+            <textarea v-model="text_curl" style="height: 95%; width: 30%; display: inline-block; margin-left: 2px;"></textarea>
+            <textarea v-model="text_python" style="height: 95%; width: 69%; display: inline-block; margin-right: 2px;"></textarea>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="./static/js/jquery2.1.4.min.js"></script>
+<script type="text/javascript" src="./static/js/vue2.2.2.js"></script>
+<script type="text/javascript" src="./static/js/clipboard.min.js"></script>
+<script type="text/javascript" src="./static/js/zui.lite.min.js"></script>
+<script type="text/javascript" src="./static/js/zui.min.js"></script>
+<script type="text/javascript" src="./static/js/ctp.js"></script>
+<script type="text/javascript">
+    var app = new Vue({
+        el: '#app',
+        data: {
+            text_curl: '',
+            text_python: '',
+            headers: '',
+            cookies: '',
+            data: '',
+            method: 'get',
+            url: '',
+            mode: 'session',
+            post_mode: 'data',
+            user_agents: user_agent_list,
+            code_models: code_mode_list
+        },
+        methods: {
+            clear_content: function () {
+                this.text_curl = this.text_python = '';
+                this.headers = this.data = this.cookies = {};
+            },
+            copy_content: function (vary, title) {
+                // var clipboard = new ClipboardJS('.copy', {text:vary});
+                var clipboard = new ClipboardJS('.copy', {
+                    text: function (trigger) {
+                        return String(vary)
+                    }
+                });
+                clipboard.on('success', function (e) {
+                    new $.zui.Messager(`复制 ${title} 成功`, {
+                        type: 'success',
+                        placement: 'center'
+                    }).show();
+                    e.clearSelection();
+                    clipboard.destroy();
+                });
+                clipboard.on('error', function (e) {
+                    alert("复制失败, 请重新复制");
+                    clipboard.destroy();
+                });
+            },
+            initical: function(del_curl_text=false){
+                this.headers = this.cookies = this.data = this.url = ''
+                this.method = 'get'
+                this.post_mode = 'data'
+                if (del_curl_text){
+                    this.text_curl = ''
+                }
+            },
+            convert: function(mode, text){
+                if (text == '' | !text.startsWith('curl')){
+                    return ''
+                }
+                this.initical()
+                text += ' '
+                url = text.match(/curl '(http.*?)'/)[1]
+                this.url = url
+                headers = {}
+                cookies = {}
+                data = {}
+                reg_headers = /-H \$?'(.*?): (.*?)' /g
+                while (r = reg_headers.exec(text)) {
+                    if (first_word_upper(r[1]) != 'Cookie') {
+                        headers[key_to_upper(r[1])] = r[2]
+                    } else {
+                        Cookie = r[2].replace("\\'", "'")
+                        Cookie.split("; ").forEach(element => {
+                            elements = element.split('=')
+                            cookies[elements[0]] = elements.slice(1).join('=')
+                        });
+                    }
+                }
+                this.headers = jsonify(headers);
+                this.cookies = jsonify(cookies);
+                if (text.indexOf('--data-raw') >= 0) {
+                    this.method = 'post';
+                    reg_data = /--data-raw \$?'(.*?)' /g;
+                    r = decodeURIComponent(reg_data.exec(text)[1]);
+                    if (headers.hasOwnProperty('Content-Type') & headers['Content-Type'].indexOf('application/json')>=0){
+                        this.post_mode = 'json';
+                        data = JSON.parse(r);
+                        this.data = JSON.stringify(data, null, '    ')
+                    }else{
+                        r.split('&').forEach(element => {
+                            elements = element.split('=');
+                            data[elements[0].replace('amp;', '')] = elements[1].replace("\\'", "'");
+                            this.data = jsonify(data);
+                        });
+                    }
+                }
+                if (text.indexOf('--data-binary') >= 0) {
+                    this.method = 'post'
+                    reg_data = /--data-binary \$?'(.*?)' /g
+                    r = decodeURIComponent(reg_data.exec(text)[1])
+                    console.log(r)
+                    data = JSON.parse(r)
+                    this.data = JSON.stringify(data, null, '    ')
+                }
+                return code_generate(mode,this.url,this.method,this.headers,this.cookies,this.data,this.post_mode)
+            },
+            copy_super_code: function(mode, copy_title){
+                this.mode = mode;
+                this.copy_content(this.text_python,copy_title);
+            }
+        },
+        watch: {
+            text_curl: function (value) {
+                this.text_python = this.convert(this.mode,value);
+            },
+            mode: function(value){
+                this.text_python = this.convert(value,this.text_curl);
+            }
+        }
+    })
+    setTimeout(async () => { 
+        const text_clipboard = await navigator.clipboard.readText(); 
+        console.log(text_clipboard);
+        if(text_clipboard.startsWith('curl')){
+            app.text_curl = text_clipboard;
+        }
+    },500)
+</script>
+</html>

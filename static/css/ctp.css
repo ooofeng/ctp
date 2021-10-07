@@ -1,21 +1,44 @@
 html{
     width: 100%;
+    height: 100%;
 }
 body{
-    height: auto;
-    width: auto;
-    min-width: 100%;
-    min-height: 100%;
-}
-table{
-    width: auto;
-    min-height: 100%;
-    min-width: 100%;
-}
-textarea{
-    height: auto;
-    min-height: 600px;
-    font-family: Consolas, Consolas, Consolas;
-    font-size: 14px;
+    height: 95%;
     width: 100%;
+    /* min-width: 100%;
+    min-height: 100%; */
+}
+/* table{
+    width: auto;
+    min-height: 100%;
+    min-width: 100%;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-size: 16px;
+} */
+textarea{
+    /* height: auto;
+    min-height: 600px; */
+    font-family: 'Jetbrains Mono', Consolas, Consolas;
+    font-size: 14px;
+    /* width: 100%; */
+}
+
+.div_all{
+    width: 100%;
+    height: 100%;
+}
+@font-face {
+    font-family: yahei; 
+    src: url(/static/fonts/microsoft_yahei.ttf);
+}
+.table-left{
+    width: 30%;
+}
+
+.table-right{
+    width: 69%;
+}
+
+.button-width{
+    max-width: ;
 }
