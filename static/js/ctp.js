@@ -1,6 +1,6 @@
 // 首字母大写
 first_word_upper = function (x) {
-    return x.replace(x[0], x[0].toUpperCase())
+    return x.replace(x[0], x[0].toUpperCase());
 }
 // 关键字每段首字母大写
 key_to_upper = function (key_string) {
@@ -8,17 +8,20 @@ key_to_upper = function (key_string) {
 }
 // json转换为字符串
 jsonify = function (text_json) {
-    result = '{\n'
-    for(key in text_json){
-        val = text_json[key]
-        sign = val.indexOf("'") >= 0 ? '"' : "'"
-        result += `    '${key}': ${sign}${val}${sign},\n`
+    if (Object.getOwnPropertyNames(text_json).length==0){
+        return '';
     }
-    return result + '}'
+    result = '{\n';
+    for(key in text_json){
+        val = text_json[key];
+        sign = val.indexOf("'") >= 0 ? '"' : "'";
+        result += `    '${key}': ${sign}${val}${sign},\n`;
+    }
+    return result + '}';
 }
 
 code_model_1 = function(mode,url,method,headers,cookies,data,post_mode){
-    text_code = ''
+    text_code = '';
     text_code += 'from requests import session\n';
     text_code += 's = session()\n';
     text_code += `headers = ${headers}\n`;
@@ -44,10 +47,121 @@ code_model_1 = function(mode,url,method,headers,cookies,data,post_mode){
     text_code += 'print(res.text)\n';
     return text_code;
 }
-code_model_2 = function(mode,url,method,headers,cookies,data,post_mode){
+code_model_json_mongo = function(mode,url,method,headers,cookies,data,post_mode){
+    text_code = '';
+    text_code += 'from requests import session\n';
+    text_code += 'from pymongo import MongoClient\n';
+    text_code += 'import pandas as pd\n';
+    text_code += `client = MongoClient('mongo://localhost:27017')\n`;
+    text_code += `col = client['<dbName>']['<colName>']\n`;
+    text_code += 's = session()\n';
+    text_code += `headers = ${headers}\n`;
+    if(cookies!=''){
+        text_code += `cookies = ${cookies}\n`;
+    }
+    if(method=='post'){
+        text_code += data!='' ? `data = ${data}\n` : '';
+    }
+    text_code += 's.headers.update(headers)\n';
+    if(cookies!=''){
+        text_code += 's.cookies.update(cookies)\n';
+    }
+    if(method=='post'){
+        if(data!=''){
+            text_code += `res = s.post('${url}', ${post_mode}=data)\n`;
+        }else{
+            text_code += `res = s.post('${url}')\n`;
+        }
+    }else{
+        text_code += `res = s.get('${url}')\n`;
+    }
+    text_code += 'res_json = res.json()\n';
+    text_code += 'results = res_json[<data_json_path>]\n';
+    text_code += 'col.insert_many(results)\n';
+    text_code += 'client.close()\n';
+    return text_code;
+}
+code_model_json_csv = function(mode,url,method,headers,cookies,data,post_mode){
     text_code = '';
     text_code += 'from requests import session\n';
     text_code += 'import pandas as pd\n';
+    text_code += 's = session()\n';
+    text_code += `headers = ${headers}\n`;
+    if(cookies!=''){
+        text_code += `cookies = ${cookies}\n`;
+    }
+    if(method=='post'){
+        text_code += data!='' ? `data = ${data}\n` : '';
+    }
+    text_code += 's.headers.update(headers)\n';
+    if(cookies!=''){
+        text_code += 's.cookies.update(cookies)\n';
+    }
+    if(method=='post'){
+        if(data!=''){
+            text_code += `res = s.post('${url}', ${post_mode}=data)\n`;
+        }else{
+            text_code += `res = s.post('${url}')\n`;
+        }
+    }else{
+        text_code += `res = s.get('${url}')\n`;
+    }
+    text_code += 'res_json = res.json()\n';
+    text_code += 'results = res_json[<data_json_path>]\n';
+    text_code += 'dt = pd.DataFrame(results)\n';
+    text_code += `dt.to_csv("./results_${new Date().getTime()}.csv")\n`;
+    return text_code;
+}
+
+code_model_json_mysql = function(mode,url,method,headers,cookies,data,post_mode){
+    return '正在开发中...'
+}
+
+code_model_json_mongo_page = function(mode,url,method,headers,cookies,data,post_mode){
+    text_code = '';
+    text_code += 'from requests import session\n';
+    text_code += 'from pymongo import MongoClient\n';
+    text_code += 'from time import sleep\n';
+    text_code += 'import pandas as pd\n';
+    text_code += `client = MongoClient('mongodb://localhost:27017')\n`;
+    text_code += `col = client['<dbName>']['<colName>']\n`;
+    text_code += 's = session()\n';
+    text_code += `headers = ${headers}\n`;
+    if(cookies!=''){
+        text_code += `cookies = ${cookies}\n`;
+    }
+    if(method=='post'){
+        text_code += data!='' ? `data = ${data}\n` : '';
+    }
+    text_code += 's.headers.update(headers)\n';
+    if(cookies!=''){
+        text_code += 's.cookies.update(cookies)\n';
+    }
+    text_code += 'for i in range(1,<page>):\n'
+    if(method=='post'){
+        if(data!=''){
+            text_code += `    data['<pageIndex>'] = str(i)\n`
+            text_code += `    res = s.post('${url}', ${post_mode}=data)\n`;
+        }else{
+            text_code += `    res = s.post('${url}')\n`;
+        }
+    }else{
+        text_code += `    res = s.get(f'${url}')\n`;
+    }
+    text_code += '    res_json = res.json()\n';
+    text_code += '    results = res_json[<data_json_path>]\n';
+    text_code += `    print(results)\n`;
+    text_code += '    col.insert_many(results)\n';
+    text_code += '    sleep(1)\n';
+    text_code += `client.close()\n`;
+    return text_code;
+}
+
+code_model_json_csv_page = function(mode,url,method,headers,cookies,data,post_mode){
+    text_code = '';
+    text_code += 'from requests import session\n';
+    text_code += 'import pandas as pd\n';
+    text_code += 'from time import sleep\n';
     text_code += 's = session()\n';
     text_code += `headers = ${headers}\n`;
     if(cookies!=''){
@@ -75,22 +189,164 @@ code_model_2 = function(mode,url,method,headers,cookies,data,post_mode){
     }
     text_code += '    res_json = res.json()\n';
     text_code += '    result = res_json[<data_json_path>]\n';
+    text_code += '    print(result)\n';
     text_code += '    results.extend(result)\n';
+    text_code += '    sleep(1)\n';
+    text_code += 'dt = pd.DataFrame(results)\n';
+    text_code += `dt.to_csv("./results_${new Date().getTime()}.csv")\n`;
+    return text_code;
+}
+code_model_xpath_mongo = function(mode,url,method,headers,cookies,data,post_mode){
+    text_code = '';
+    text_code += 'from requests import session\n';
+    text_code += 'from pymongo import MongoClient\n';
+    text_code += 'from lxml import etree\n';
+    text_code += `client = MongoClient('mongodb://localhost:27017')\n`;
+    text_code += `col = client['<dbName>']['<colName>']\n`;
+    text_code += 's = session()\n';
+    text_code += `headers = ${headers}\n`;
+    if(cookies!=''){
+        text_code += `cookies = ${cookies}\n`;
+    }
+    if(method=='post'){
+        text_code += data!='' ? `data = ${data}\n` : '';
+    }
+    text_code += 's.headers.update(headers)\n';
+    if(cookies!=''){
+        text_code += 's.cookies.update(cookies)\n';
+    }
+    if(method=='post'){
+        if(data!=''){
+            text_code += `res = s.post('${url}', ${post_mode}=data)\n`;
+        }else{
+            text_code += `res = s.post('${url}')\n`;
+        }
+    }else{
+        text_code += `res = s.get('${url}')\n`;
+    }
+    text_code += 'html = etree.HTML(res.text)\n';
+    text_code += `nodes = html.xpath('.//<xpath>')\n`;
+    text_code += `for node in nodes:\n`;
+    text_code += `    dic = {}\n`;
+    text_code += `    dic['<name>'] = node.xpath('string(.//<xpath>)')\n`;
+    text_code += `    print(dic)\n`;
+    text_code += `    col.insert_one(dic)\n`;
+    text_code += 'client.close()\n';
+    return text_code;
+}
+
+code_model_xpath_csv = function(mode,url,method,headers,cookies,data,post_mode){
+    text_code = '';
+    text_code += 'from requests import session\n';
+    text_code += 'import pandas as pd\n';
+    text_code += 'from lxml import etree\n';
+    text_code += 's = session()\n';
+    text_code += `headers = ${headers}\n`;
+    if(cookies!=''){
+        text_code += `cookies = ${cookies}\n`;
+    }
+    if(method=='post'){
+        text_code += data!='' ? `data = ${data}\n` : '';
+    }
+    text_code += 's.headers.update(headers)\n';
+    if(cookies!=''){
+        text_code += 's.cookies.update(cookies)\n';
+    }
+    if(method=='post'){
+        if(data!=''){
+            text_code += `res = s.post('${url}', ${post_mode}=data)\n`;
+        }else{
+            text_code += `res = s.post('${url}')\n`;
+        }
+    }else{
+        text_code += `res = s.get('${url}')\n`;
+    }
+    text_code += 'results = []\n'
+    text_code += 'html = etree.HTML(res.text)\n';
+    text_code += `nodes = html.xpath('.//<xpath>')\n`;
+    text_code += `for node in nodes:\n`;
+    text_code += `    dic = {}\n`;
+    text_code += `    dic['<name>'] = node.xpath('string(.//<xpath>)')\n`;
+    text_code += `    print(dic)\n`;
+    text_code += `    results.append(dic)\n`;
     text_code += 'dt = pd.DataFrame(results)\n';
     text_code += `dt.to_csv("./results_${new Date().getTime()}.csv")\n`;
     return text_code;
 }
 
+code_model_xpath_mysql = function(mode,url,method,headers,cookies,data,post_mode){
+    return '正在开发中...'
+}
+code_model_xpath_csv_page = function(mode,url,method,headers,cookies,data,post_mode){
+    text_code = '';
+    text_code += 'from requests import session\n';
+    text_code += 'import pandas as pd\n';
+    text_code += 'from time import sleep\n';
+    text_code += 'from lxml import etree\n';
+    text_code += 's = session()\n';
+    text_code += `headers = ${headers}\n`;
+    if(cookies!=''){
+        text_code += `cookies = ${cookies}\n`;
+    }
+    if(method=='post'){
+        text_code += data!='' ? `data = ${data}\n` : '';
+    }
+    text_code += 's.headers.update(headers)\n';
+    if(cookies!=''){
+        text_code += 's.cookies.update(cookies)\n';
+    }
+    text_code += 'results = []\n'
+    text_code += 'for i in range(1,<page>):\n'
+    if(method=='post'){
+        if(data!=''){
+            text_code += `    data['<pageIndex>'] = str(i)\n`
+            text_code += `    res = s.post('${url}', ${post_mode}=data)\n`;
+        }else{
+            text_code += `    res = s.post('${url}')\n`;
+        }
+    }else{
+        text_code += `    url = '<pageIndexUrl>'\n`;
+        text_code += `    res = s.get(url)\n`;
+    }
+    text_code += '    html = etree.HTML(res.text)\n';
+    text_code += `    nodes = html.xpath('.//<xpath>')\n`;
+    text_code += `    for node in nodes:\n`;
+    text_code += `        dic = {}\n`;
+    text_code += `        dic['<name>'] = node.xpath('string(.//<xpath>)')\n`;
+    text_code += `        print(dic)\n`;
+    text_code += `        results.append(dic)\n`;
+    text_code += '    sleep(1)\n';
+    text_code += 'dt = pd.DataFrame(results)\n';
+    text_code += `dt.to_csv("./results_${new Date().getTime()}.csv")\n`;
+    return text_code;
+}
+code_model_xpath_mysql_page = function(mode,url,method,headers,cookies,data,post_mode){
+    return `正在开发中...`
+}
 code_generate = function(mode,url,method,headers,cookies,data,post_mode){
-    
-    if(mode=='session'){
-        text_code = code_model_1(mode,url,method,headers,cookies,data,post_mode);
-        return text_code;
-    }else if(mode=='session_json'){
-        text_code = code_model_1(mode,url,method,headers,cookies,data,post_mode);
-        return text_code.replace('print(res.text)','print(res.json())');
-    }else if(mode=='session_json_csv'){
-        return code_model_2(mode,url,method,headers,cookies,data,post_mode);
+    switch (mode) {
+        case "json & mongo":
+            return code_model_json_mongo(mode,url,method,headers,cookies,data,post_mode);
+        case "json & csv":
+            return code_model_json_csv(mode,url,method,headers,cookies,data,post_mode);
+        case "json & mysql":
+            return code_model_json_mysql(mode,url,method,headers,cookies,data,post_mode);
+        case "json & mongo & 翻页":
+            return code_model_json_mongo_page(mode,url,method,headers,cookies,data,post_mode);
+        case "json & csv & 翻页":
+            return code_model_json_csv_page(mode,url,method,headers,cookies,data,post_mode);
+        case "xpath & mongo":
+            return code_model_xpath_mongo(mode,url,method,headers,cookies,data,post_mode);
+        case "xpath & csv":
+            return code_model_xpath_csv(mode,url,method,headers,cookies,data,post_mode);
+        case "xpath & mysql":
+            return code_model_xpath_mysql(mode,url,method,headers,cookies,data,post_mode);
+        case "xpath & csv & 翻页":
+            return code_model_xpath_csv_page(mode,url,method,headers,cookies,data,post_mode);
+        case "xpath & mysql & 翻页":
+            return code_model_xpath_mysql_page(mode,url,method,headers,cookies,data,post_mode);
+        default:
+            return code_model_1(mode,url,method,headers,cookies,data,post_mode);
     }
 }
 
@@ -123,44 +379,34 @@ const user_agent_list = [
 ]
 const code_mode_list = [
     {
-        mode: 'json_mongo',
-        name_show: 'json & mongo'
+        name: 'json & mongo'
     },
     {
-        mode: 'json_csv',
-        name_show: 'json & csv'
+        name: 'json & csv'
     },
     {
-        mode: 'json_mysql',
-        name_show: 'json & mysql'
+        name: 'json & mysql'
     },
     {
-        mode: 'json_mongo_翻页',
-        name_show: 'json & mongo & 翻页'
+        name: 'json & mongo & 翻页'
     },
     {
-        mode: 'json_csv_翻页',
-        name_show: 'json & csv & 翻页'
+        name: 'json & csv & 翻页'
     },
     {
-        mode: 'session_json_csv',
-        name_show: 'xpath & mongo'
+        name: 'xpath & mongo'
     },
     {
-        mode: 'session_json_mongo',
-        name_show: 'xpath & csv'
+        name: 'xpath & csv'
     },
     {
-        mode: 'session_json_mongo',
-        name_show: 'xpath & mysql'
+        name: 'xpath & mysql'
     },
     {
-        mode: 'session_json_mongo',
-        name_show: 'xpath & csv & 翻页'
+        name: 'xpath & csv & 翻页'
     },
     {
-        mode: 'session_json_mongo',
-        name_show: 'xpath & mysql & 翻页'
+        name: 'xpath & mysql & 翻页'
     },
 ]
 

@@ -50,15 +50,15 @@
                     <button class="btn btn-primary copy" type="button" data-toggle="dropdown" style="background-color: #FF0000; border-color: #FF0000;">复制 强代码&nbsp;&nbsp;<span class="caret"></span></button>
                     <ul class="dropdown-menu">
                         <li v-for="(code_model,index) in code_models">
-                            <a href="javascript:void(0)" class="copy" @click="copy_super_code(code_model.mode,code_model.name_show);" >@{{ code_model.name_show }}</a>
+                            <a href="javascript:void(0)" class="copy" @click="copy_super_code(code_model.name,code_model.name);" >@{{ code_model.name }}</a>
                         </li>
                     </ul>
                 </div>
             </div>
         </div>
         <div class="row_content" style="height: 98%;width: 100%;">
-            <textarea v-model="text_curl" style="height: 95%; width: 30%; display: inline-block; margin-left: 2px;"></textarea>
-            <textarea v-model="text_python" style="height: 95%; width: 69%; display: inline-block; margin-right: 2px;"></textarea>
+            <textarea v-model="text_curl" class="form-control textarea_input" style="height: 95%; width: 30%; display: inline-block; margin-left: 2px;"></textarea>
+            <textarea v-model="text_python" class="form-control textarea_input" style="height: 95%; width: 69%; display: inline-block; margin-right: 2px;"></textarea>
         </div>
     </div>
 </body>
@@ -86,14 +86,13 @@
         },
         methods: {
             clear_content: function () {
-                this.text_curl = this.text_python = '';
-                this.headers = this.data = this.cookies = {};
+                this.text_curl = this.text_python = this.headers = this.data = this.cookies = '';
             },
             copy_content: function (vary, title) {
                 // var clipboard = new ClipboardJS('.copy', {text:vary});
                 var clipboard = new ClipboardJS('.copy', {
                     text: function (trigger) {
-                        return String(vary)
+                        return String(vary);
                     }
                 });
                 clipboard.on('success', function (e) {
@@ -170,6 +169,7 @@
             },
             copy_super_code: function(mode, copy_title){
                 this.mode = mode;
+                this.text_python = code_generate(mode,this.url,this.method,this.headers,this.cookies,this.data,this.post_mode)
                 this.copy_content(this.text_python,copy_title);
             }
         },
@@ -177,9 +177,9 @@
             text_curl: function (value) {
                 this.text_python = this.convert(this.mode,value);
             },
-            mode: function(value){
-                this.text_python = this.convert(value,this.text_curl);
-            }
+            // mode: function(value){
+            //     this.text_python = this.convert(value,this.text_curl);
+            // }
         }
     })
     setTimeout(async () => { 
